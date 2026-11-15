@@ -35,6 +35,12 @@ mavenPublishing {
                 @Suppress("UnstableApiUsage")
                 setUrl(layout.settingsDirectory.dir("build/localMaven"))
             }
+            maven {
+                name = "githubPackages"
+                setUrl("https://maven.pkg.github.com/maicol07/igdbclient")
+                // githubPackagesUsername / githubPackagesPassword Gradle properties
+                credentials(PasswordCredentials::class)
+            }
         }
     }
 
@@ -47,7 +53,7 @@ mavenPublishing {
     pom {
         name.set(project.name)
         description.set("Kotlin Multiplatform wrapper for the Internet Game Database API")
-        url.set("https://github.com/illarionov/igdbclient")
+        url.set("https://github.com/maicol07/igdbclient")
 
         licenses {
             license {
@@ -62,11 +68,16 @@ mavenPublishing {
                 name.set("Alexey Illarionov")
                 email.set("alexey@0xdc.ru")
             }
+            developer {
+                id.set("maicol07")
+                name.set("Maicol Battistini")
+                url.set("https://maicol07.it")
+            }
         }
         scm {
-            connection.set("scm:git:git://github.com/illarionov/igdbclient.git")
-            developerConnection.set("scm:git:ssh://github.com:illarionov/igdbclient.git")
-            url.set("https://github.com/illarionov/igdbclient/tree/main")
+            connection.set("scm:git:git://github.com/maicol07/igdbclient.git")
+            developerConnection.set("scm:git:ssh://git@github.com/maicol07/igdbclient.git")
+            url.set("https://github.com/maicol07/igdbclient/tree/main")
         }
     }
 }

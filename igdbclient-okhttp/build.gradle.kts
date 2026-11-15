@@ -14,7 +14,7 @@ plugins {
     id("at.released.igdbclient.gradle.multiplatform.publish")
 }
 
-group = "at.released.igdbclient"
+group = "it.maicol07.igdbclient"
 version = igdbVersions.getSubmoduleVersionProvider(
     propertiesFileKey = "igdbclient_okhttp_version",
     envVariableName = "IGDBCLIENT_OKHTTP_VERSION",

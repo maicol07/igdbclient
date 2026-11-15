@@ -16,7 +16,7 @@ plugins {
     id("at.released.igdbclient.gradle.multiplatform.test")
 }
 
-group = "at.released.igdbclient"
+group = "it.maicol07.igdbclient"
 version = igdbVersions.getSubmoduleVersionProvider(
     propertiesFileKey = "igdbclient_ktor_version",
     envVariableName = "IGDBCLIENT_KTOR_VERSION",

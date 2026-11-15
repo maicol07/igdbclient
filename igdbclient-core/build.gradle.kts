@@ -19,7 +19,7 @@ plugins {
     id("at.released.igdbclient.gradle.protobuf.igdb.wire")
 }
 
-group = "at.released.igdbclient"
+group = "it.maicol07.igdbclient"
 version = igdbVersions.getSubmoduleVersionProvider(
     propertiesFileKey = "igdbclient_core_version",
     envVariableName = "IGDBCLIENT_CORE_VERSION",
