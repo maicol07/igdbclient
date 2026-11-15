@@ -1,0 +1,121 @@
+name: CI
+# Shared pipeline of maicol07/actions: checks on PRs and main, then on main a snapshot on GitHub
+# Packages and the release PR, and once it is merged the GitHub Release and Maven Central /
+# GitHub Packages. Commits before the `fork-point` tag come from upstream (illarionov/igdbclient).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Never cancel a release half done on main.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.jvmargs="-Xmx3G -XX:MaxMetaspaceSize=1g -XX:SoftRefLRUPolicyMSPerMB=10 -XX:+UseParallelGC -XX:NewRatio=1"
+    -Dorg.gradle.dependency.verification.console=verbose
+
+jobs:
+  security:
+    uses: maicol07/actions/.github/workflows/security.yml@v1
+
+  commit_lint:
+    uses: maicol07/actions/.github/workflows/commit-lint.yml@v1
+
+  # Own workflow: the Multiplatform build needs macOS.
+  test:
+    uses: ./.github/workflows/Build.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      security-events: write
+
+  snapshot:
+    needs: [security, test]
+    if: github.event_name == 'push'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: corretto
+          java-version: '24'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+      - name: Publish snapshot to GitHub Packages
+        run: ./gradlew publishAllPublicationsToGithubPackagesRepository --no-configuration-cache --stacktrace
+        env:
+          IGDBCLIENT_VERSION: ${{ github.sha }}-SNAPSHOT
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_ARMORED_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.repository_owner }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: [security, test]
+    if: github.event_name == 'push'
+    uses: maicol07/actions/.github/workflows/release.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      # Only x.y.z: upstream's x.y tags are skipped as upstream releases.
+      tag_pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+      # The fork's first release is 1.0.0, then git-cliff's bump.
+      next_version: |
+        if git describe --tags --abbrev=0 --match '[0-9]*.[0-9]*.[0-9]*' >/dev/null 2>&1; then
+          cliff --bumped-version
+        else
+          echo 1.0.0
+        fi
+      # The fallback version of local builds; CI passes IGDBCLIENT_VERSION.
+      bump: |
+        sed -i -E 's/^(igdbclient_version = ).*/\1'"$VERSION"'/' config/version.properties
+
+  publish:
+    needs: release
+    if: needs.release.outputs.tag
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IGDBCLIENT_VERSION: ${{ needs.release.outputs.tag }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_ARMORED_PRIVATE_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+      - uses: actions/setup-java@v6
+        with:
+          distribution: corretto
+          java-version: '24'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+      - name: Build & Publish to Maven Central
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      - name: Publish to GitHub Packages
+        run: ./gradlew publishAllPublicationsToGithubPackagesRepository --no-configuration-cache --stacktrace
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.repository_owner }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
