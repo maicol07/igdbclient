@@ -1,7 +1,12 @@
 # Igdbclient
 
-[![Maven Central](https://img.shields.io/maven-central/v/at.released.igdbclient/igdbclient-core)](https://central.sonatype.com/artifact/at.released.igdbclient/igdbclient-core/)
-[![build](https://github.com/illarionov/igdbclient/actions/workflows/Build.yml/badge.svg)](https://github.com/illarionov/igdbclient/actions/workflows/Build.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/it.maicol07.igdbclient/igdbclient-core)](https://central.sonatype.com/artifact/it.maicol07.igdbclient/igdbclient-core/)
+[![CI](https://github.com/maicol07/igdbclient/actions/workflows/ci.yml/badge.svg)](https://github.com/maicol07/igdbclient/actions/workflows/ci.yml)
+
+> Maintained fork of [illarionov/igdbclient](https://github.com/illarionov/igdbclient), published as
+> `it.maicol07.igdbclient`. The Kotlin package is unchanged (`at.released.igdbclient`): migrating from
+> `at.released.igdbclient` only needs the new Maven coordinates. Releases up to 0.8 are described in the
+> [upstream changelog](https://github.com/illarionov/igdbclient/blob/main/CHANGELOG.md).
 
 Igdbclient is a Kotlin Multiplatform library for fetching information about games from the
 [IGDB.com](https://www.igdb.com/) Video Game Database.
@@ -29,7 +34,7 @@ Dependency when using *Кtor* client (supported on all targets):
 
 ```kotlin
 dependencies {
-    implementation("at.released.igdbclient:igdbclient-ktor:0.7")
+    implementation("it.maicol07.igdbclient:igdbclient-ktor:1.0.0")
 }
 ```
 
@@ -38,7 +43,7 @@ In Kotlin Multiplatform projects, this dependency can be added to the *commonMai
 ```kotlin
 commonMain {
     dependencies {
-        implementation("at.released.igdbclient:igdbclient-ktor:0.7")
+        implementation("it.maicol07.igdbclient:igdbclient-ktor:1.0.0")
     }
 }
 ```
@@ -47,7 +52,7 @@ Dependency when using *Okhttp* (JVM and Android):
 
 ```kotlin
 dependencies {
-    implementation("at.released.igdbclient:igdbclient-okhttp:0.7")
+    implementation("it.maicol07.igdbclient:igdbclient-okhttp:1.0.0")
 }
 ```
 
@@ -298,7 +303,7 @@ The following types of contributions are especially welcome:
 [Ktor]: https://ktor.io/
 [Okhttp]: https://square.github.io/okhttp/
 [IGDB API]: https://api-docs.igdb.com/
-[Maven Central]: https://search.maven.org/artifact/at.released.igdbclient/igdbclient
+[Maven Central]: https://central.sonatype.com/namespace/it.maicol07.igdbclient
 
 ## License
 
